@@ -1,0 +1,75 @@
+      <reaction compartment="compartment_70101" fast="false" id="reaction_9679044" metaid="metaid_75" name="FKBP1A binds sirolimus" reversible="false">
+        <notes>
+          <p xmlns="http://www.w3.org/1999/xhtml">Sirolimus is a macrolide compound obtained from Streptomyces hygroscopicus that acts by selectively blocking the transcriptional activation of cytokines thereby inhibiting cytokine production. It is bioactive only when bound to immunophilins. Sirolimus is a potent immunosuppressant and possesses both antifungal and antineoplastic properties. Sirolimus inhibits T lymphocyte activation and proliferation that occurs in response to antigenic and cytokine (Interleukin IL-2, IL-4, and IL-15) stimulation by a mechanism that is distinct from that of other immunosuppressants. Sirolimus also inhibits antibody production. In cells, sirolimus binds to the immunophilin, peptidyl-prolyl cis-trans isomerase (FKBP1A, FKBP-12), to generate an immunosuppressive complex. The sirolimus:FKBP1A complex has no effect on calcineurin activity (Bierer et al. 1991). This complex binds to and inhibits the activation of the mammalian Target Of Rapamycin (mTOR), a key regulatory kinase. This inhibition suppresses cytokine-driven T-cell proliferation, inhibiting the progression from the G1 to the S phase of the cell cycle (Sehgal 1998, 2003).</p>
+        </notes>
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_75">
+              <dc:creator>
+                <rdf:Bag>
+                  <li rdf:parseType="Resource">
+                    <vCard:N rdf:parseType="Resource">
+                      <vCard:Family>Jassal</vCard:Family>
+                      <vCard:Given>Bijay</vCard:Given>
+                    </vCard:N>
+                    <vCard:ORG rdf:parseType="Resource">
+                      <vCard:Orgname>European Bioinformatics Institute</vCard:Orgname>
+                    </vCard:ORG>
+                  </li>
+                  <li rdf:parseType="Resource">
+                    <vCard:N rdf:parseType="Resource">
+                      <vCard:Family>Jassal</vCard:Family>
+                      <vCard:Given>Bijay</vCard:Given>
+                    </vCard:N>
+                    <vCard:ORG rdf:parseType="Resource">
+                      <vCard:Orgname>European Bioinformatics Institute</vCard:Orgname>
+                    </vCard:ORG>
+                  </li>
+                  <li rdf:parseType="Resource">
+                    <vCard:N rdf:parseType="Resource">
+                      <vCard:Family>Shorser</vCard:Family>
+                      <vCard:Given>Solomon</vCard:Given>
+                    </vCard:N>
+                    <vCard:ORG rdf:parseType="Resource">
+                      <vCard:Orgname>OICR</vCard:Orgname>
+                    </vCard:ORG>
+                  </li>
+                </rdf:Bag>
+              </dc:creator>
+              <dcterms:created rdf:parseType="Resource">
+                <dcterms:W3CDTF>2020-03-23T11:03:08Z</dcterms:W3CDTF>
+              </dcterms:created>
+              <dcterms:modified rdf:parseType="Resource">
+                <dcterms:W3CDTF>2020-11-20T08:53:31Z</dcterms:W3CDTF>
+              </dcterms:modified>
+              <dcterms:modified rdf:parseType="Resource">
+                <dcterms:W3CDTF>2020-03-23T11:03:08Z</dcterms:W3CDTF>
+              </dcterms:modified>
+              <bqbiol:is>
+                <rdf:Bag>
+                  <li rdf:resource="https://reactome.org/content/detail/R-HSA-9679044" />
+                </rdf:Bag>
+              </bqbiol:is>
+              <bqbiol:isDescribedBy>
+                <rdf:Bag>
+                  <li rdf:resource="http://www.ncbi.nlm.nih.gov/pubmed/12742462" />
+                  <li rdf:resource="http://www.ncbi.nlm.nih.gov/pubmed/9721431" />
+                  <li rdf:resource="http://www.ncbi.nlm.nih.gov/pubmed/1715244" />
+                </rdf:Bag>
+              </bqbiol:isDescribedBy>
+              <bqbiol:is>
+                <rdf:Bag>
+                  <li rdf:resource="https://reactome.org/content/detail/R-HSA-9679044" />
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="true" id="speciesreference_9679044_input_9678687" sboTerm="SBO:0000010" species="species_9678687" stoichiometry="1" />
+          <speciesReference constant="true" id="speciesreference_9679044_input_2026007" sboTerm="SBO:0000010" species="species_2026007" stoichiometry="1" />
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="true" id="speciesreference_9679044_output_9679098" sboTerm="SBO:0000011" species="species_9679098" stoichiometry="1" />
+        </listOfProducts>
+      </reaction>
