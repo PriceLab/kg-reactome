@@ -30,6 +30,16 @@ an integer count
 
 character (species) ids
 
+an integer count
+
+an named list
+
+a named list, complex name and complex participatns
+
+one of "drug", "reaction", "protein", "ligand", or "unrecognized"
+
+one of "drug", "reaction", "protein", "ligand", or "unrecognized"
+
 a named list, edges and nodes, each a data.frame
 }
 \description{
@@ -55,6 +65,11 @@ import xml2
 \item \href{#method-getProducts}{\code{ReactionParser$getProducts()}}
 \item \href{#method-getModifierCount}{\code{ReactionParser$getModifierCount()}}
 \item \href{#method-getModifiers}{\code{ReactionParser$getModifiers()}}
+\item \href{#method-getComplexCount}{\code{ReactionParser$getComplexCount()}}
+\item \href{#method-getCounts}{\code{ReactionParser$getCounts()}}
+\item \href{#method-getComplexes}{\code{ReactionParser$getComplexes()}}
+\item \href{#method-assignNodeType}{\code{ReactionParser$assignNodeType()}}
+\item \href{#method-assignNodeName}{\code{ReactionParser$assignNodeName()}}
 \item \href{#method-toEdgeAndNodeTables}{\code{ReactionParser$toEdgeAndNodeTables()}}
 \item \href{#method-clone}{\code{ReactionParser$clone()}}
 }
@@ -203,6 +218,70 @@ get the species identifiers for all modifiers
 \if{html}{\out{<div class="r">}}\preformatted{ReactionParser$getModifiers()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-getComplexCount"></a>}}
+\if{latex}{\out{\hypertarget{method-getComplexCount}{}}}
+\subsection{Method \code{getComplexCount()}}{
+zero or more molecular complexes participate in this reaction
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ReactionParser$getComplexCount()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-getCounts"></a>}}
+\if{latex}{\out{\hypertarget{method-getCounts}{}}}
+\subsection{Method \code{getCounts()}}{
+reactants, products, modifiers, complexes
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ReactionParser$getCounts()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-getComplexes"></a>}}
+\if{latex}{\out{\hypertarget{method-getComplexes}{}}}
+\subsection{Method \code{getComplexes()}}{
+identify molecular species which are complexes of molecular species
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ReactionParser$getComplexes()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-assignNodeType"></a>}}
+\if{latex}{\out{\hypertarget{method-assignNodeType}{}}}
+\subsection{Method \code{assignNodeType()}}{
+reactome entities (nodes) are of identifiable types; assign them here
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ReactionParser$assignNodeType(node.id)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{node.id}}{character}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-assignNodeName"></a>}}
+\if{latex}{\out{\hypertarget{method-assignNodeName}{}}}
+\subsection{Method \code{assignNodeName()}}{
+reactome entities (nodes) are of identifiable types; assign them here
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ReactionParser$assignNodeName(node.id)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{node.id}}{character}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-toEdgeAndNodeTables"></a>}}

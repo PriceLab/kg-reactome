@@ -1,8 +1,8 @@
 Package: PathwayParser
 Type: Package
 Title: PathwayParer
-Version: 1.0.4
-Date: 2021-01-06
+Version: 1.0.6
+Date: 2021-01-07
 Author: Paul Shannon
 Maintainer: Paul Shannon <paul.thurmond.shannon@gmail.com>
 Depends: R (>= 3.5.0), R6, xml2, data.table

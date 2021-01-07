@@ -12,6 +12,7 @@ install:
 
 test:
 	(cd inst/unitTests; R -f test_ReactionParser.R)
+	(cd inst/unitTests; R -f test_Pathway.R)
 
 
 all: roxy install test

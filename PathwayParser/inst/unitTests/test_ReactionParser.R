@@ -35,6 +35,7 @@ if(!exists("parser"))
 runTests <- function()
 {
    test_ctor()
+   test_getCounts()
    test_getReactants()
    test_getProducts()
    test_getModifiers()
@@ -42,7 +43,7 @@ runTests <- function()
    test_assignNodeType()
    test_assignNodeName()
    # test_eliminateUbiquitiousSpecies()
-   #test_toEdgeAndNodeTables()
+   test_toEdgeAndNodeTables()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -197,6 +198,66 @@ test_getComplexes <- function()
 
 } # test_getComplexes
 #------------------------------------------------------------------------------------------------------------------------
+test_getCounts <- function()
+{
+   message(sprintf("--- test_getCounts"))
+
+   reaction <- getReactionForTesting(doc, 1)
+   parser <- ReactionParser$new(doc, reaction, pathway)
+   checkEquals(parser$getReactantCount(), 2)
+   checkEquals(parser$getProductCount(), 1)
+   checkEquals(parser$getModifierCount(), 0)
+   checkEquals(parser$getComplexCount(), 3)
+
+   reaction <- getReactionForTesting(doc, 11)
+   parser <- ReactionParser$new(doc, reaction, pathway)
+   checkEquals(parser$getReactantCount(), 5)
+   checkEquals(parser$getProductCount(), 1)
+   checkEquals(parser$getModifierCount(), 0)
+   checkEquals(parser$getComplexCount(), 1)
+
+   reaction <- getReactionForTesting(doc, 29)
+   parser <- ReactionParser$new(doc, reaction, pathway)
+   checkEquals(parser$getReactantCount(), 2)
+   checkEquals(parser$getProductCount(), 2)
+   checkEquals(parser$getModifierCount(), 1)
+   checkEquals(parser$getComplexCount(), 2)
+
+   reaction.count <- length(xml_find_all(doc, "//reaction"))
+
+   for(i in seq_len(reaction.count)){
+     reaction <- getReactionForTesting(doc, i)
+     parser <- ReactionParser$new(doc, reaction, pathway)
+     checkTrue(parser$getReactantCount() > 0)
+     checkTrue(parser$getProductCount() > 0)
+     checkTrue(parser$getModifierCount() >= 0)
+     checkTrue(parser$getComplexCount() >= 0)
+     #printf("%d: %d %d %d %d", i, parser$getReactantCount(),
+     #       parser$getProductCount(),
+     #       parser$getModifierCount(),
+     #       parser$getComplexCount())
+     } # for i
+
+      #-------------------------------------------------------
+      # counts for all categories, reaction 1
+      # "Ragulator binds Rag dimers"
+      #-------------------------------------------------------
+   reaction <- getReactionForTesting(doc, 1)
+   parser <- ReactionParser$new(doc, reaction, pathway)
+   x <- parser$getCounts()
+   checkEquals(x, list(reactants=2, products=1, modifiers=0, complexes=3))
+
+      #-------------------------------------------------------
+      # counts for all categories, reaction 8
+      # "Phosphorylation of 4E-BP1 by activated mTORC1"
+      #-------------------------------------------------------
+   reaction <- getReactionForTesting(doc, 8)
+   parser <- ReactionParser$new(doc, reaction, pathway)
+   x <- parser$getCounts()
+   checkEquals(x, list(reactants=2, products=2, modifiers=4, complexes=2))
+
+} # test_getCounts
+#------------------------------------------------------------------------------------------------------------------------
 # reaction 2 in R-HSA-165159.sbml: no complexes
 # reaction 5 in R-HSA-165159.sbml: 1 complex of two elements
 # reaction 1 in R-HSA-165159.sbml: 3 complexes
@@ -234,10 +295,10 @@ test_toEdgeAndNodeTables <- function()
    checkEquals(x$nodes$parent, c("", "", "", ""))  # includeComplexMebers=FALSE
 
      # keep in mind that excludeUbiquitousSpecies is default TRUE
-   checkEquals(dim(x$edges), c(3, 3))
+   checkEquals(dim(x$edges), c(3, 4))
    checkEquals(x$edges[3, "source"], "species_165714")
    checkEquals(x$edges[3, "target"], "reaction_165777")
-   checkEquals(x$edges[3, "interaction"], "modifies")
+   checkEquals(x$edges[3, "reaction"], "Phosphorylation and activation of eIF4B by activated S6K1")
 
      #--------------------------------------------------------------------------
      # now request inclusion of members of any complex - of which there are none
@@ -254,13 +315,20 @@ test_toEdgeAndNodeTables <- function()
    checkTrue(all(c("ATP", "ADP") %in% x3$nodes$label))
 
      # keep in mind that excludeUbiquitousSpecies is default TRUE
-   checkEquals(dim(x3$edges), c(5, 3))
+   checkEquals(dim(x3$edges), c(5, 4))
 
 } # test_toEdgeAndNodeTables
 #------------------------------------------------------------------------------------------------------------------------
 test_toEdgeAndNodeTables_withComplexes <- function()
 {
    message(sprintf("--- test_toEdgeAndNodeTables_withComplexes"))
+
+      #-----------------------------------------------------------------------------
+      # use reaction 1 in R-HSA-165159.sbml:
+      #-----------------------------------------------------------------------------
+
+   reaction.5 <- getReactionForTesting(doc, 5)
+
 
       #-----------------------------------------------------------------------------
       # use reaction 5 in R-HSA-165159.sbml:
@@ -278,7 +346,6 @@ test_toEdgeAndNodeTables_withComplexes <- function()
    tbl.edges <- x$edges
    nodes.in.edges <- with(tbl.edges, sort(unique(c(source, target))))
 
-   #checkTrue(
 
 } # test_toEdgeAndNodeTables_withComplexes
 #------------------------------------------------------------------------------------------------------------------------
@@ -294,21 +361,27 @@ renderReaction <- function()
 
 } # renderReaction
 #------------------------------------------------------------------------------------------------------------------------
-test_reaction_1 <- function()
+# a reaction with all four kinds of nodes
+# "Phosphorylation of 4E-BP1 by activated mTORC1"
+#   reactants:  2
+#   products:   2
+#   modifiers:  4
+#   complexes:  2
+test_reaction_8 <- function(display=FALSE)
 {
-   message(sprintf("--- test_reaction_1"))
-   reaction <- getReactionForTesting(doc, 1) #    # "FKBP1A binds sirolimus"
+   message(sprintf("--- test_reaction_8"))
+
+   reaction <- getReactionForTesting(doc, 8) #
    parser <- ReactionParser$new(doc, reaction, pathway)
-   x <- parser$toEdgeAndNodeTables()
+   x <- parser$toEdgeAndNodeTables(includeComplexMembers=FALSE)
 
-   g.json <- toJSON(dataFramesToJSON(x$edges, x$nodes))
-   deleteGraph(rcy)
-   addGraph(rcy, g.json)
-   loadStyleFile(rcy, "style.js")
-   layout(rcy, "cose")
-   fit(rcy)
+   checkEquals(lapply(x, dim), list(edges=c(6,4), nodes=c(7,4)))
 
-} # test_reaction_1
+   x <- parser$toEdgeAndNodeTables(includeComplexMembers=TRUE)
+   checkEquals(lapply(x, dim), list(edges=c(10,4), nodes=c(9,4)))
+
+
+} # test_reaction_8
 #------------------------------------------------------------------------------------------------------------------------
 test_eliminateUbiquitiousSpecies <- function()
 {

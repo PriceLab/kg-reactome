@@ -10,6 +10,7 @@ runTests <- function()
    test_getReactionNames()
    test_getPathways()
    test_getMolecularSpeciesMap()
+   test_processAllReactionsInPathway()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -77,14 +78,29 @@ test_getMolecularSpeciesMap <- function()
 
 } # test_getMolecularSpeciesMap
 #------------------------------------------------------------------------------------------------------------------------
-test_processReaction <- function()
+test_processAllReactionsInPathway <- function()
 {
-   message(sprintf("--- test_processReaction"))
+   message(sprintf("--- test_processAllReactionsInPathway"))
 
    sbml.filename <- system.file(package="PathwayParser", "extdata", "R-HSA-165159.sbml")
    pathway <- Pathway$new(sbml.filename)
-   pathway$processReaction(1, excludeUbiquitousSpecies=TRUE, includeComplexMembers=TRUE)
+   x <- pathway$processReaction(1, excludeUbiquitousSpecies=TRUE, includeComplexMembers=TRUE)
+   checkEquals(lapply(x, dim), list(edges=c(25, 4), nodes=c(15, 4)))
 
+   reaction.count <- pathway$getReactionCount()
+   tbls <- lapply(seq_len(reaction.count), function(i){
+       x <- pathway$processReaction(i, excludeUbiquitousSpecies=TRUE, includeComplexMembers=TRUE)
+       })
+
+   tbls.edges <- lapply(tbls, function(el)el$edges)
+   tbls.nodes <- lapply(tbls, function(el)el$nodes)
+   checkEquals(length(tbls.edges), reaction.count)
+   checkEquals(length(tbls.nodes), reaction.count)
+
+   tbl.edges <- do.call(rbind, tbls.edges)
+   tbl.nodes <- unique(do.call(rbind, tbls.nodes))
+
+   checkEquals(length(unique(c(tbl.edges$source, tbl.edges$target))), nrow(tbl.nodes))
 
 } # test_processReaction
 #------------------------------------------------------------------------------------------------------------------------
