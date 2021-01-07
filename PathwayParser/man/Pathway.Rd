@@ -5,6 +5,8 @@
 \title{Pathway}
 \value{
 a named list, indexed by species ids, with reactome data in each element
+
+a named list, edges and nodes, each a data.frame
 }
 \description{
 an R6 class which parses and represents a Reactome Pathway
@@ -23,6 +25,7 @@ import data.table
 \item \href{#method-getReactionNames}{\code{Pathway$getReactionNames()}}
 \item \href{#method-getPathwayNameMap}{\code{Pathway$getPathwayNameMap()}}
 \item \href{#method-getMolecularSpeciesMap}{\code{Pathway$getMolecularSpeciesMap()}}
+\item \href{#method-processReaction}{\code{Pathway$processReaction()}}
 \item \href{#method-clone}{\code{Pathway$clone()}}
 }
 }
@@ -107,6 +110,16 @@ the map
 molecular species from xml hierarchy as list list
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Pathway$getMolecularSpeciesMap()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-processReaction"></a>}}
+\if{latex}{\out{\hypertarget{method-processReaction}{}}}
+\subsection{Method \code{processReaction()}}{
+read the specified reaction, convert to edge and node tables
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pathway$processReaction(i, excludeUbiquitousSpecies, includeComplexMembers)}\if{html}{\out{</div>}}
 }
 
 }

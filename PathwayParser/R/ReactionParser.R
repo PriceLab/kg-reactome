@@ -15,45 +15,8 @@ ReactionParser = R6Class("ReactionParser",
     private = list(
         doc = NULL,
         xml.node = NULL,
-        parent.pathway = NULL
-
-        #molecularSpeciesMap = NULL,
-        #tbl.pathwayNameMap = NULL,
-
-        # createMolecularSpeciesMap = function(doc){
-        #    private$molecularSpeciesMap <- list()
-        #    all.species <- xml_find_all(private$doc, "..//listOfSpecies/species")
-        #    for(species in all.species){
-        #       id <- xml_text(xml_find_all(species, ".//@id"))
-        #       name.raw <- xml_text(xml_find_all(species, ".//@name"))
-        #       tokens <- strsplit(name.raw, " [", fixed=TRUE)[[1]]
-        #       name <- tokens[1]
-        #       moleculeType <- "molecule"
-        #       compartment <- sub("]", "", tokens[2], fixed=TRUE)
-        #       members <- xml_find_all(species, ".//bqbiol:hasPart//rdf:li/@rdf:resource")
-        #       if(length(members) == 0)
-        #         members <- c()
-        #       if(length(members) > 0){
-        #         moleculeType <- "complex"
-        #         members <- xml_text(members)
-        #         members <- sub("http://purl.uniprot.org/uniprot/", "uniprotkb:", members, fixed=TRUE)
-        #         members <- sub("http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:", "ChEBI:", members, fixed=TRUE)
-        #         members <- sub("http://www.guidetopharmacology.org/GRAC/LigandDisplayForward?ligandId=",
-        #                        "ligandId:", members, fixed=TRUE)
-        #         }
-        #       new.entry <- list(name=name, moleculeType=moleculeType, compartment=compartment, members=members)
-        #       private$molecularSpeciesMap[[id]] <- new.entry
-        #       xyz <- 99
-        #       } # for species
-        #    } # createSpeciesMap
-        #readPathwayIdMap = function(){
-        #   file <- system.file(package="PathwayParser", "extdata", "ReactomePathways-human.tsv")
-        #   tbl.pathwayNameMap <- read.table(file, sep="\t", header=FALSE, as.is=TRUE, nrow=-1, quote="")
-        #   colnames(tbl.pathwayNameMap) <- c("id", "name", "organism")
-        #   private$tbl.pathwayNameMap <- tbl.pathwayNameMap
-        #   }
-
-
+        parent.pathway = NULL,
+        tbl.speciesMap = NULL
         ), # private
 
         #' @description
@@ -63,29 +26,15 @@ ReactionParser = R6Class("ReactionParser",
         #' @return A new `ReactionParser` object.
 
 
-   public = list(
+    public = list(
        initialize = function(doc, xml.node, parent.pathway){
           stopifnot(length(xml.node) == 1)
           private$doc <- doc
-          #private$createMolecularSpeciesMap()
-          #private$readPathwayIdMap()
           private$xml.node <- xml.node
           private$parent.pathway <- parent.pathway
+          private$tbl.speciesMap <- parent.pathway$getMolecularSpeciesMap()
           },
 
-        # @description
-        # associates pathway name with an R-HSA- number
-        # @returns the whole data.frame for human pathways
-      #getPathwayNameMap = function(){
-      #   private$tbl.pathwayNameMap
-      #   },
-
-        # @description
-        # extracts all molecular species from xml hierarchy into a usable list
-        # @returns a named list, indexed by species ids, with reactome data in each element
-      #getMolecularSpeciesMap = function(){
-      #   private$molecularSpeciesMap
-      #   },
 
         #' @description
         #' easy access to the entire xml element
@@ -175,6 +124,61 @@ ReactionParser = R6Class("ReactionParser",
          },
 
         #' @description
+        #' identify molecular species which are complexes of molecular species
+        #' @returns a named list, complex name and complex participatns
+      getComplexes = function(){
+         all.species <- unique(c(self$getReactants(), self$getProducts()))
+         #tbl.map <- private$parent.pathway$getMolecularSpeciesMap()
+         x <- lapply(all.species, function(species) unlist(subset(private$tbl.speciesMap, id==species)$complex.members))
+         names(x) <- all.species
+         x[as.logical(lapply(x, function(el) !is.null(el)))]
+         },
+
+
+        #' @description
+        #' reactome entities (nodes) are of identifiable types; assign them here
+        #' @param node.id character
+        #' @returns one of "drug", "reaction", "protein", "ligand", or "unrecognized"
+
+      assignNodeType = function(node.id){
+          if(node.id == "species_9678687")
+              return("drug")
+          if(grepl("^reaction_", node.id))
+              return("reaction")
+          if(grepl("^uniprotkb", node.id))
+              return("protein")
+          if(grepl("^ligandId", node.id))
+              return("ligand")
+          if(grepl("^species_", node.id))
+              return(subset(private$tbl.speciesMap, id==node.id)$type)
+          return("unrecognized")
+          }, # assignNodeType
+
+        #' @description
+        #' reactome entities (nodes) are of identifiable types; assign them here
+        #' @param node.id character
+        #' @returns one of "drug", "reaction", "protein", "ligand", or "unrecognized"
+
+      assignNodeName = function(node.id){
+          if(node.id %in% c("species_9678687", "ligandId:6031"))
+              return("rapamycin")
+          if(grepl("^reaction", node.id))
+              return(self$getName())
+          if(grepl("^uniprotkb", node.id))
+              return(select(EnsDb.Hsapiens.v79,
+                            key=sub("uniprotkb:", "", node.id),
+                            keytype="UNIPROTID",
+                            columns=c("SYMBOL"))$SYMBOL)
+          if(grepl("^ligandI:", node.id))
+              return(node.id)
+          if(grepl("^species_", node.id)){
+              return(subset(private$tbl.speciesMap, id==node.id)$name)
+              }
+          return(node.id)
+          }, # assignNodeName
+
+
+        #' @description
         #' cytoscape.js various databases (sql, neo4j, dc) represent data in tables.
         #' create them here
         #' @param excludeUbiquitousSpecies logical, default TRUE: ATP, ADP, water
@@ -182,6 +186,7 @@ ReactionParser = R6Class("ReactionParser",
         #' @returns a named list, edges and nodes, each a data.frame
 
       toEdgeAndNodeTables = function(excludeUbiquitousSpecies=TRUE, includeComplexMembers){
+          browser()
           atp <- "species_113592"
           adp <- "species_29370"
           amp <- "species_76577"
@@ -204,69 +209,58 @@ ReactionParser = R6Class("ReactionParser",
                                 interaction=rep("produces", self$getProductCount()),
                                 stringsAsFactors=FALSE)
 
-          tbl.edges <- rbind(tbl.in, tbl.out, tbl.modifiers)
+          tbl.complexes <- data.frame()
+          if(includeComplexMembers){
+             complex.list <- self$getComplexes()
+             tbls.complex <- lapply(names(complex.list), function(species){
+                 parent <- species
+                 children <- complex.list[[parent]]
+                 data.frame(source=children, target=parent, interaction="complexMember",
+                            stringsAsFactors=FALSE)
+                 })
+             tbl.complexes <- do.call(rbind, tbls.complex)
+             }
+
+          tbl.edges <- rbind(tbl.in, tbl.out, tbl.modifiers, tbl.complexes)
 
           species <- grep("species_", unique(c(tbl.edges$source, tbl.edges$target)), v=TRUE)
-          map <- private$parent.pathway$getMolecularSpeciesMap()
+          #tbl.map <- private$parent.pathway$getMolecularSpeciesMap()
 
           nodes.all <- with(tbl.edges, unique(c(source, target)))
              # add all the complex members
 
-          nodes.species <- intersect(nodes.all, names(map))
-          nodes.other   <- setdiff(nodes.all, names(map))
-          assignNodeType <- function(node.id){
-              if(node.id == "species_9678687")
-                  return("drug")
-              if(grepl("^reaction_", node.id))
-                  return("reaction")
-              if(grepl("^uniprotkb:", node.id))
-                  return("protein")
-              if(grepl("^ligandId:", node.id))
-                  return("ligand")
-              if(grepl("^species_", node.id))
-                  return(map[[node.id]]$moleculeType)
-              return("unrecognized")
-          } # assignNodeType
-
-          assignNodeName <- function(node.id){
-              if(node.id %in% c("species_9678687", "ligandId:6031"))
-                  return("rapamycin")
-              if(grepl("^reaction_", node.id))
-                  return(self$getName())
-              if(grepl("^uniprotkb:", node.id))
-                  return(select(EnsDb.Hsapiens.v79,
-                                key=sub("uniprotkb:", "", node.id),
-                                keytype="UNIPROTID",
-                                columns=c("SYMBOL"))$SYMBOL)
-              if(grepl("^ligandId:", node.id))
-                  return(node.id)
-              if(grepl("^species_", node.id)){
-                  return(subset(map, id==node.id)$name)
-                  }
-           return(node.id)
-          } # addingNodeName
-
+          nodes.species <- intersect(nodes.all, names(private$tbl.speciesMap))
+          nodes.other   <- setdiff(nodes.all, names(private$tbl.speciesMap))
           tbl.nodes <- data.frame(id=nodes.all,
-                                  type=unlist(lapply(nodes.all, assignNodeType)),
-                                  label=unlist(lapply(nodes.all, assignNodeName)),
+                                  type=rep("unassigned", length(nodes.all)), # unlist(lapply(nodes.all, assignNodeType)),
+                                  label=unlist(lapply(nodes.all, self$assignNodeName)),
                                   parent=rep("", length(nodes.all)),
                                   stringsAsFactors=FALSE)
-          complex.members <- lapply(species, function(sp) map[[sp]]$members)
+          complex.members <- lapply(species, function(sp) subset(private$tbl.speciesMap, id==sp)$complex.members)
           names(complex.members) <- species
-          tbls.complex <- lapply(names(complex.members), function(parent.node){
-              member.proteins <- complex.members[[parent.node]]
-              data.frame(id=member.proteins,
-                         type=rep("complexMember", length(member.proteins)),
-                         label=member.proteins,
-                         parent=rep(parent.node, length(member.proteins)),
-                         stringsAsFactors=FALSE)
-              })
-          tbl.complex <- do.call(rbind, tbls.complex)
+          tbl.complex <- data.frame()
+          if(any(!is.null(unlist(subset(private$tbl.speciesMap, id %in% species)$complex.members)))){
+             tbls.complex <- lapply(names(complex.members), function(parent.node){
+                 member.proteins <- unlist(complex.members[[parent.node]])
+                 data.frame(id=member.proteins,
+                            type=rep("complexMember", length(member.proteins)),
+                            label=member.proteins,
+                            parent=rep(parent.node, length(member.proteins)),
+                            stringsAsFactors=FALSE)
+                 })
+             tbl.complex <- do.call(rbind, tbls.complex)
+             }
+
           tbl.nodes.all <- tbl.nodes
-          if(includeComplexMembers)
+          if(includeComplexMembers){
              tbl.nodes.all <- rbind(tbl.nodes, tbl.complex)
+             tbl.complex.edges <- data.frame(source=tbl.complex$id, target=tbl.complex$parent,
+                                             interaction="inComplex", stringsAsFactors=FALSE)
+             tbl.edges <- rbind(tbl.edges, tbl.complex.edges)
+             } # if includeComplexMembers
 
           tbl.nodes.all$id <- make.names(tbl.nodes.all$id, unique=TRUE)
+          tbl.nodes.all$type <- unlist(lapply(tbl.nodes.all$id, self$assignNodeType))
 
           if(excludeUbiquitousSpecies){
              deleters <- match(inconsequentials, tbl.nodes.all$id)

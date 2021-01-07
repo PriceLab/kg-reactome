@@ -59,6 +59,7 @@ test_getPathways <- function()
 test_getMolecularSpeciesMap <- function()
 {
    message(sprintf("--- test_getMolecularSpeciesMap"))
+
    sbml.filename <- system.file(package="PathwayParser", "extdata", "R-HSA-165159.sbml")
    pathway <- Pathway$new(sbml.filename)
    tbl.species <- pathway$getMolecularSpeciesMap()
@@ -75,6 +76,17 @@ test_getMolecularSpeciesMap <- function()
                                                       "uniprotkb:Q0VGL1"))
 
 } # test_getMolecularSpeciesMap
+#------------------------------------------------------------------------------------------------------------------------
+test_processReaction <- function()
+{
+   message(sprintf("--- test_processReaction"))
+
+   sbml.filename <- system.file(package="PathwayParser", "extdata", "R-HSA-165159.sbml")
+   pathway <- Pathway$new(sbml.filename)
+   pathway$processReaction(1, excludeUbiquitousSpecies=TRUE, includeComplexMembers=TRUE)
+
+
+} # test_processReaction
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
     runTests()
