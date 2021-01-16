@@ -2,6 +2,7 @@
 #
 #' import R6
 #' import xml2
+#' import EnsDb.Hsapiens.v79
 #'
 #' @title ReactionParser
 #' @description an R6 class which parses xml Reactome reactions into data.frames
@@ -23,6 +24,7 @@ ReactionParser = R6Class("ReactionParser",
         #' Create a new parser
         #' @param doc an xml_document
         #' @param xml.node an XMLInternalNode
+        #' @param parent.pathway an object of the Pathway class, constructed from the sbml filename
         #' @return A new `ReactionParser` object.
 
 

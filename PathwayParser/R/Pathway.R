@@ -110,7 +110,7 @@ Pathway = R6Class("Pathway",
           },
 
         #' @description
-        #' molecular species from xml hierarchy as list list
+        #' molecular species from xml hierarchy as list
         #' @returns a named list, indexed by species ids, with reactome data in each element
        getMolecularSpeciesMap = function(){
          private$tbl.molecularSpecies
@@ -118,6 +118,9 @@ Pathway = R6Class("Pathway",
 
         #' @description
         #' read the specified reaction, convert to edge and node tables
+        #' @param i integer, which reaction from the current pathway
+        #' @param excludeUbiquitousSpecies logical, e.g. water, atp, adp
+        #' @param includeComplexMembers logical, expand graph to include molecules participating in complexes
         #' @returns a named list, edges and nodes, each a data.frame
        processReaction = function(i, excludeUbiquitousSpecies, includeComplexMembers){
          reaction <- xml_find_all(private$doc, sprintf("//reaction[%d]", i))

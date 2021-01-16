@@ -1,7 +1,6 @@
 library(PathwayParser)
 library(RUnit)
 library(RCyjs)
-library(EnsDb.Hsapiens.v79)
 library(later)
 #------------------------------------------------------------------------------------------------------------------------
 # 2nd reaction to test, #3

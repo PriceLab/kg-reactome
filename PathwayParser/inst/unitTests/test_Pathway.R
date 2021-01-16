@@ -1,7 +1,6 @@
 library(PathwayParser)
 library(RUnit)
 library(RCyjs)
-library(EnsDb.Hsapiens.v79)
 library(later)
 #------------------------------------------------------------------------------------------------------------------------
 runTests <- function()
@@ -102,7 +101,21 @@ test_processAllReactionsInPathway <- function()
 
    checkEquals(length(unique(c(tbl.edges$source, tbl.edges$target))), nrow(tbl.nodes))
 
-} # test_processReaction
+   write.table(tbl.nodes,
+               file="~/github/kg-reactome/neo4j/import/R-HSA-165159-nodes.tsv",
+               sep="\t",
+               row.names=FALSE,
+               col.names=TRUE,
+               quote=FALSE)
+
+   write.table(tbl.edges,
+               file="~/github/kg-reactome/neo4j/import/R-HSA-165159-eges.tsv",
+               sep="\t",
+               row.names=FALSE,
+               col.names=TRUE,
+               quote=FALSE)
+
+} # test_processAllReactionsInPathway
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
     runTests()

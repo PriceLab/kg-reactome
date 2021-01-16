@@ -48,6 +48,7 @@ an R6 class which parses xml Reactome reactions into data.frames
 \details{
 import R6
 import xml2
+import EnsDb.Hsapiens.v79
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -89,6 +90,8 @@ Create a new parser
 \item{\code{doc}}{an xml_document}
 
 \item{\code{xml.node}}{an XMLInternalNode}
+
+\item{\code{parent.pathway}}{an object of the Pathway class, constructed from the sbml filename}
 }
 \if{html}{\out{</div>}}
 }

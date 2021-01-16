@@ -107,7 +107,7 @@ the map
 \if{html}{\out{<a id="method-getMolecularSpeciesMap"></a>}}
 \if{latex}{\out{\hypertarget{method-getMolecularSpeciesMap}{}}}
 \subsection{Method \code{getMolecularSpeciesMap()}}{
-molecular species from xml hierarchy as list list
+molecular species from xml hierarchy as list
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Pathway$getMolecularSpeciesMap()}\if{html}{\out{</div>}}
 }
@@ -122,6 +122,17 @@ read the specified reaction, convert to edge and node tables
 \if{html}{\out{<div class="r">}}\preformatted{Pathway$processReaction(i, excludeUbiquitousSpecies, includeComplexMembers)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{i}}{integer, which reaction from the current pathway}
+
+\item{\code{excludeUbiquitousSpecies}}{logical, e.g. water, atp, adp}
+
+\item{\code{includeComplexMembers}}{logical, expand graph to include molecules participating in complexes}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
