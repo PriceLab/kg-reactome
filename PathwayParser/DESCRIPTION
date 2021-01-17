@@ -1,8 +1,8 @@
 Package: PathwayParser
 Type: Package
 Title: PathwayParer
-Version: 1.0.7
-Date: 2021-01-16
+Version: 1.0.8
+Date: 2021-01-17
 Author: Paul Shannon
 Maintainer: Paul Shannon <paul.thurmond.shannon@gmail.com>
 Depends: R (>= 3.5.0), R6, xml2, data.table, EnsDb.Hsapiens.v79

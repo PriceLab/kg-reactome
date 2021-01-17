@@ -43,6 +43,7 @@ runTests <- function()
    test_assignNodeName()
    # test_eliminateUbiquitiousSpecies()
    test_toEdgeAndNodeTables()
+   test_toEdgeAndNodeTables_withComplexes()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -73,12 +74,12 @@ test_assignNodeType <- function()
                 "species_9678687")
    x <- lapply(species, parser$assignNodeType)
    names(x) <- species
-   checkEquals(x, list(species_9678687="drug",
-                       species_2026007="molecule",
-                       species_9679098="complex",
-                       `uniprotkb:P62942`="protein",
-                       `ligandId:6031`="ligand",
-                       species_9678687="drug"))
+   checkEquals(x, list(species_9678687="drug",        # sirolimus [cytosol]
+                       species_2026007="protein",     # FKB1A [cytosol]
+                       species_9679098="complex",     # FKBP1A:sirolimus [cytosol]
+                       `uniprotkb:P62942`="protein",  # FKBP1A
+                       `ligandId:6031`="ligand",      # another identifier for sirolimus (rapamycin)
+                       species_9678687="drug"))       # added explicitly, an earlier test, redundant?
 
 } # test_assignNodeType
 #------------------------------------------------------------------------------------------------------------------------
@@ -148,10 +149,32 @@ test_getModifiers <- function()
      # of autophagy.
 
    tbl.map <- pathway$getMolecularSpeciesMap()
-   checkEquals(subset(tbl.map, id == "species_165714")$name, "p-S371,T389-RPS6KB1")
-   checkEquals(subset(tbl.map, id == "species_165714")$type, "molecule")
-   checkEquals(subset(tbl.map, id == "species_165714")$compartment, "cytosol")
-   checkTrue(is.null(subset(tbl.map, id == "species_165714")$members))
+
+      # a member of the ribosomal S6 kinase family of serine/threonine
+      # kinases. The encoded protein responds to mTOR (mammalian
+      # target of rapamycin) signaling to promote protein synthesis,
+      # cell growth, and cell proliferation.
+      # here phosphorylated on serine 371, threonine 389
+      # phosphorylating RPS6 in reaction R-HSA-165726
+
+   checkEquals(as.list(subset(tbl.map, id == "species_165714")),
+               list(id="species_165714",
+                    name="p-S371,T389-RPS6KB1",
+                    type="protein",
+                    compartment="cytosol",
+                    uniprot.id="P23443",
+                    chebi.id=NA_character_,
+                    complex.members=list(NULL)))
+
+      # ATP
+   checkEquals(as.list(subset(tbl.map, id == "species_113592")),
+              list(id="species_113592",
+                   name="ATP",
+                   type="smallMolecule",
+                   compartment="cytosol",
+                   uniprot.id=NA_character_,
+                   chebi.id="CHEBI:30616",
+                   complex.members=list(NULL)))
 
 } # test_getProducts
 #------------------------------------------------------------------------------------------------------------------------
@@ -290,7 +313,7 @@ test_toEdgeAndNodeTables <- function()
    checkTrue("p-S371,T389-RPS6KB1" %in% x$nodes$label)
      # check the node types
    checkEquals(x$nodes$id, c("species_72589", "reaction_165777", "species_165714", "species_165773"))
-   checkEquals(x$nodes$type, c("molecule", "reaction", "molecule", "molecule"))
+   checkEquals(x$nodes$type, c("protein", "reaction", "protein", "protein"))
    checkEquals(x$nodes$parent, c("", "", "", ""))  # includeComplexMebers=FALSE
 
      # keep in mind that excludeUbiquitousSpecies is default TRUE
@@ -326,8 +349,7 @@ test_toEdgeAndNodeTables_withComplexes <- function()
       # use reaction 1 in R-HSA-165159.sbml:
       #-----------------------------------------------------------------------------
 
-   reaction.5 <- getReactionForTesting(doc, 5)
-
+   reaction.1 <- getReactionForTesting(doc, 1)
 
       #-----------------------------------------------------------------------------
       # use reaction 5 in R-HSA-165159.sbml:
@@ -335,16 +357,31 @@ test_toEdgeAndNodeTables_withComplexes <- function()
 
    reaction.5 <- getReactionForTesting(doc, 5)
    parser.tmp <- ReactionParser$new(doc, reaction.5, pathway)
+
    checkEquals(parser.tmp$getReactantCount(), 2)
    checkEquals(parser.tmp$getProductCount(), 1)
    checkEquals(parser.tmp$getModifierCount(), 0)
    checkEquals(sort(parser.tmp$getModifiers()), character(0))
+   checkEquals(parser.tmp$getComplexes(), list(species_9679098=c("uniprotkb:P62942", "ligandId:6031")))
 
-   x <- parser.tmp$toEdgeAndNodeTables(includeComplexMembers=TRUE, excludeUbiquitousSpecies=FALSE)
-   tbl.nodes <- x$nodes
-   tbl.edges <- x$edges
-   nodes.in.edges <- with(tbl.edges, sort(unique(c(source, target))))
+   x.without   <- parser.tmp$toEdgeAndNodeTables(includeComplexMembers=FALSE, excludeUbiquitousSpecies=TRUE)
+   checkTrue(with(x.without, all(c(edges$source, edges$target) %in% nodes$id)))
+   checkEquals(lapply(x.without, dim), list(edges=c(3,4), nodes=c(4,4)))
+   checkTrue(all(nchar(x.without$nodes$parent) == 0))   # no parents here (all empty strings)
 
+   x.with <- parser.tmp$toEdgeAndNodeTables(includeComplexMembers=TRUE, excludeUbiquitousSpecies=TRUE)
+   checkTrue(with(x.with, all(c(edges$source, edges$target) %in% nodes$id)))
+
+   checkEquals(lapply(x.with, dim),   list(edges=c(3,4), nodes=c(6,4)))
+      # uniprotkb:P62942 and ligandId:6031 complex to form speces_9679098
+      #   FKBP1A + rapamycin -> FKBP1A:sirolimus
+      # make sure that works
+   #checkEquals(x.with$nodes[4, "id"], "uniprotkb:P62942")
+   #checkEquals(x.with$nodes[4, "parent"], "species_9679098")
+
+   #checkEquals(x.with$nodes[5, "id"], "ligandId:6031")
+   #checkEquals(x.with$nodes[5, "parent"], "species_9679098")
+   #checkTrue(all(x.with$nodes$parent[1:3] == ""))
 
 } # test_toEdgeAndNodeTables_withComplexes
 #------------------------------------------------------------------------------------------------------------------------
@@ -425,6 +462,8 @@ displayReaction <- function(i, exclude=TRUE, deleteExistingGraph=TRUE, includeCo
       layout(rcy, "cose-bilkent")
       fit(rcy)
       }, 2)
+
+   invisible(x)
 
 } # displayReaction
 #------------------------------------------------------------------------------------------------------------------------

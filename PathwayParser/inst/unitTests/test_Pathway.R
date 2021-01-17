@@ -63,10 +63,12 @@ test_getMolecularSpeciesMap <- function()
    sbml.filename <- system.file(package="PathwayParser", "extdata", "R-HSA-165159.sbml")
    pathway <- Pathway$new(sbml.filename)
    tbl.species <- pathway$getMolecularSpeciesMap()
-   checkEquals(dim(tbl.species), c(66, 5))
-   checkEquals(colnames(tbl.species), c("id", "name", "type", "compartment", "complex.members"))
+   checkEquals(dim(tbl.species), c(66, 7))
+   checkEquals(colnames(tbl.species), c("id", "name", "type", "compartment",
+                                        "uniprot.id", "chebi.id", "complex.members"))
    checkEquals(unlist(lapply(tbl.species, class), use.names=FALSE),
-               c("character", "character", "character", "character", "list"))
+               c("character", "character", "character", "character",
+                 "character", "character", "list"))
    checkEquals(tbl.species$id[1], "species_5653921")
    checkEquals(tbl.species$name[1], "Ragulator")
    checkEquals(tbl.species$type[1], "complex")
@@ -83,14 +85,14 @@ test_processAllReactionsInPathway <- function()
 
    sbml.filename <- system.file(package="PathwayParser", "extdata", "R-HSA-165159.sbml")
    pathway <- Pathway$new(sbml.filename)
-   x <- pathway$processReaction(1, excludeUbiquitousSpecies=TRUE, includeComplexMembers=TRUE)
-   checkEquals(lapply(x, dim), list(edges=c(25, 4), nodes=c(15, 4)))
+   x <- pathway$processReaction(1, excludeUbiquitousSpecies=TRUE, includeComplexMembers=FALSE)
+   checkEquals(lapply(x, dim), list(edges=c(3, 4), nodes=c(4, 4)))
 
    reaction.count <- pathway$getReactionCount()
+   checkEquals(reaction.count, 29)
    tbls <- lapply(seq_len(reaction.count), function(i){
-       x <- pathway$processReaction(i, excludeUbiquitousSpecies=TRUE, includeComplexMembers=TRUE)
+       x <- pathway$processReaction(i, excludeUbiquitousSpecies=TRUE, includeComplexMembers=FALSE)
        })
-
    tbls.edges <- lapply(tbls, function(el)el$edges)
    tbls.nodes <- lapply(tbls, function(el)el$nodes)
    checkEquals(length(tbls.edges), reaction.count)
@@ -98,6 +100,9 @@ test_processAllReactionsInPathway <- function()
 
    tbl.edges <- do.call(rbind, tbls.edges)
    tbl.nodes <- unique(do.call(rbind, tbls.nodes))
+
+   checkTrue(nrow(tbl.edges) > 100)
+   checkTrue(nrow(tbl.nodes) > 90)
 
    checkEquals(length(unique(c(tbl.edges$source, tbl.edges$target))), nrow(tbl.nodes))
 

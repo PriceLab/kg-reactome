@@ -36,6 +36,25 @@ Pathway = R6Class("Pathway",
               name <- tokens[1]
               moleculeType <- "molecule"
               compartment <- sub("]", "", tokens[2], fixed=TRUE)
+              elements.raw <- xml_text(xml_find_all(species, ".//bqbiol:is//rdf:li/@rdf:resource"))
+              elements <- c()
+              chebi.id <- NA
+              uniprot.id <- NA
+              if(length(elements.raw) > 0){
+                  chebi.element <- grep("CHEBI", elements.raw)
+                  uniprot.element <- grep("uniprot", elements.raw)
+                  if(length(chebi.element) == 1){
+                      chebi.id <- sub("http://www.ebi.ac.uk/chebi/searchId.do?chebiId=", "",
+                                      elements.raw[chebi.element], fixed=TRUE)
+                      moleculeType <- "smallMolecule"
+                      }
+                  if(length(uniprot.element) == 1){
+                      uniprot.id <- sub("http://purl.uniprot.org/uniprot/", "",
+                                        elements.raw[uniprot.element], fixed=TRUE)
+                      moleculeType <- "protein"
+                      }
+                 } # if some elements
+              #browser()
               members <- xml_find_all(species, ".//bqbiol:hasPart//rdf:li/@rdf:resource")
               if(length(members) == 0)
                 members <- c()
@@ -47,14 +66,18 @@ Pathway = R6Class("Pathway",
                 members <- sub("http://www.guidetopharmacology.org/GRAC/LigandDisplayForward?ligandId=",
                                "ligandId:", members, fixed=TRUE)
                 }
-              new.entry <- list(name=name, moleculeType=moleculeType, compartment=compartment, members=members)
+              new.entry <- list(name=name, moleculeType=moleculeType, compartment=compartment,
+                                members=members, uniprot=uniprot.id, chebi=chebi.id)
               tmp[[id]] <- new.entry
               } # for species
            extract <- function(i){
                x <- tmp[[i]]
                complex.members <- x$members
                data.table(id=names(tmp)[i], name=x$name, type=x$moleculeType,
-                          compartment=x$compartment, complex.members=list(complex.members))
+                          compartment=x$compartment,
+                          uniprot.id=x$uniprot,
+                          chebi.id=x$chebi,
+                          complex.members=list(complex.members))
                }
            tbls <- lapply(seq_len(length(tmp)), extract)
            private$tbl.molecularSpecies <- do.call(rbind, tbls)
