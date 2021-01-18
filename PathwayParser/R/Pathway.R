@@ -54,13 +54,33 @@ Pathway = R6Class("Pathway",
                       moleculeType <- "protein"
                       }
                  } # if some elements
-              #browser()
-              members <- xml_find_all(species, ".//bqbiol:hasPart//rdf:li/@rdf:resource")
-              if(length(members) == 0)
-                members <- c()
-              if(length(members) > 0){
+              members <- xml_text(xml_find_all(species, ".//bqbiol:hasPart//rdf:li/@rdf:resource"))
+              is.elements <- xml_text(xml_find_all(species, ".//bqbiol:is//rdf:li/@rdf:resource"))
+              notes <- xml_text(xml_find_all(species, ".//notes"))
+              alternativeEntities <- grepl("alternative entities", notes)
+              complex <- grepl("Reactome Complex", notes)
+              protein <- grepl("This is a protein", notes)
+              smallCompound <- grepl("This is a small compound", notes)
+
+              if(protein & length(members) == 0 & length(is.elements) > 0){
+                 moleculeType <- "protein"
+                 uniprot.id <- sub("http://purl.uniprot.org/uniprot/", "uniprotkb:", is.elements[1])
+                 members <- uniprot.id
+                 }
+              #if(length(members) == 0)
+              #  members <- c()
+                # a pseudo complex, where the plural members are actually alternate proteins?
+                # todo: need a more robust solution here. now just use the first alternate
+              printf("length(members): %d   ; found? %s", length(members), !grepl(";", name))
+              if(name == "p-S371,T389-RPS6KB1") browser()
+              if(length(members) > 0 & alternativeEntities){
+                  moleculeType <- "protein"
+                  uniprot.id <- sub(".*http://purl.uniprot.org/uniprot/", "uniprotkb:", members)[1]
+                  uniprot.id <- sub('"', '', uniprot.id)
+                  members <- uniprot.id
+                  }
+              if(length(members) > 0 & complex){
                 moleculeType <- "complex"
-                members <- xml_text(members)
                 members <- sub("http://purl.uniprot.org/uniprot/", "uniprotkb:", members, fixed=TRUE)
                 members <- sub("http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:", "ChEBI:", members, fixed=TRUE)
                 members <- sub("http://www.guidetopharmacology.org/GRAC/LigandDisplayForward?ligandId=",

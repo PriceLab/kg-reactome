@@ -8,7 +8,7 @@ roxy:
 	R -e "devtools::document()"
 
 install:
-	R CMD INSTALL .
+	R CMD INSTALL --no-test-load .
 
 test:
 	(cd inst/unitTests; R -f test_ReactionParser.R)

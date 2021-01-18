@@ -43,7 +43,7 @@ runTests <- function()
    test_assignNodeName()
    # test_eliminateUbiquitiousSpecies()
    test_toEdgeAndNodeTables()
-   test_toEdgeAndNodeTables_withComplexes()
+   #test_toEdgeAndNodeTables_withComplexes()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -340,50 +340,64 @@ test_toEdgeAndNodeTables <- function()
    checkEquals(dim(x3$edges), c(5, 4))
 
 } # test_toEdgeAndNodeTables
-#------------------------------------------------------------------------------------------------------------------------
-test_toEdgeAndNodeTables_withComplexes <- function()
+#----------------------------------------------------------------------------------------------------
+# reaction 21 has 3 reactant proteins, but two have been interpreted as complexes, since
+# they have two alternate members.
+# this seems like a funky use of sbml, but let's work around it, construing the multiple
+# alternate proteins as reactants to the reaction into which STRAD feeds
+# this adjustment will happen in the toEdgeAndNodeTables method
+test_toEdgeAndNodeTables_STRAD <- function()
 {
-   message(sprintf("--- test_toEdgeAndNodeTables_withComplexes"))
+   message(sprintf("--- test_toEdgeAndNodeTables"))
 
-      #-----------------------------------------------------------------------------
-      # use reaction 1 in R-HSA-165159.sbml:
-      #-----------------------------------------------------------------------------
+   reaction <- getReactionForTesting(doc, 21)
+   parser <- ReactionParser$new(doc, reaction, pathway)
+   parser$getReactantCount()
+   parser$getProductCount()
+   parser$getModifierCount()
+   parser$getModifiers()
+   parser$getComplexes()
 
-   reaction.1 <- getReactionForTesting(doc, 1)
+     #--------------------------------------------------------------------------
+     # do not request inclusion of members of any complex
+     #--------------------------------------------------------------------------
 
-      #-----------------------------------------------------------------------------
-      # use reaction 5 in R-HSA-165159.sbml:
-      #-----------------------------------------------------------------------------
+   x <- parser$toEdgeAndNodeTables(includeComplexMembers=FALSE)
+   checkEquals(sort(names(x)), c("edges", "nodes"))
 
-   reaction.5 <- getReactionForTesting(doc, 5)
-   parser.tmp <- ReactionParser$new(doc, reaction.5, pathway)
+     # do some node checks
+   checkEquals(dim(x$nodes), c(4, 4))
+   checkTrue("species_165714" %in% x$nodes$id)
+   checkTrue("p-S371,T389-RPS6KB1" %in% x$nodes$label)
+     # check the node types
+   checkEquals(x$nodes$id, c("species_72589", "reaction_165777", "species_165714", "species_165773"))
+   checkEquals(x$nodes$type, c("protein", "reaction", "protein", "protein"))
+   checkEquals(x$nodes$parent, c("", "", "", ""))  # includeComplexMebers=FALSE
 
-   checkEquals(parser.tmp$getReactantCount(), 2)
-   checkEquals(parser.tmp$getProductCount(), 1)
-   checkEquals(parser.tmp$getModifierCount(), 0)
-   checkEquals(sort(parser.tmp$getModifiers()), character(0))
-   checkEquals(parser.tmp$getComplexes(), list(species_9679098=c("uniprotkb:P62942", "ligandId:6031")))
+     # keep in mind that excludeUbiquitousSpecies is default TRUE
+   checkEquals(dim(x$edges), c(3, 4))
+   checkEquals(x$edges[3, "source"], "species_165714")
+   checkEquals(x$edges[3, "target"], "reaction_165777")
+   checkEquals(x$edges[3, "reaction"], "Phosphorylation and activation of eIF4B by activated S6K1")
 
-   x.without   <- parser.tmp$toEdgeAndNodeTables(includeComplexMembers=FALSE, excludeUbiquitousSpecies=TRUE)
-   checkTrue(with(x.without, all(c(edges$source, edges$target) %in% nodes$id)))
-   checkEquals(lapply(x.without, dim), list(edges=c(3,4), nodes=c(4,4)))
-   checkTrue(all(nchar(x.without$nodes$parent) == 0))   # no parents here (all empty strings)
+     #--------------------------------------------------------------------------
+     # now request inclusion of members of any complex - of which there are none
+     #--------------------------------------------------------------------------
 
-   x.with <- parser.tmp$toEdgeAndNodeTables(includeComplexMembers=TRUE, excludeUbiquitousSpecies=TRUE)
-   checkTrue(with(x.with, all(c(edges$source, edges$target) %in% nodes$id)))
+   x2 <- parser$toEdgeAndNodeTables(includeComplexMembers=TRUE)
+   checkEquals(x, x2)
 
-   checkEquals(lapply(x.with, dim),   list(edges=c(3,4), nodes=c(6,4)))
-      # uniprotkb:P62942 and ligandId:6031 complex to form speces_9679098
-      #   FKBP1A + rapamycin -> FKBP1A:sirolimus
-      # make sure that works
-   #checkEquals(x.with$nodes[4, "id"], "uniprotkb:P62942")
-   #checkEquals(x.with$nodes[4, "parent"], "species_9679098")
+      # now get all species, including water, atp, adp if present
+   x3 <- parser$toEdgeAndNodeTables(includeComplexMembers=FALSE, excludeUbiquitousSpecies=FALSE)
+   checkEquals(sort(names(x3)), c("edges", "nodes"))
 
-   #checkEquals(x.with$nodes[5, "id"], "ligandId:6031")
-   #checkEquals(x.with$nodes[5, "parent"], "species_9679098")
-   #checkTrue(all(x.with$nodes$parent[1:3] == ""))
+   checkEquals(dim(x3$nodes), c(6, 4))
+   checkTrue(all(c("ATP", "ADP") %in% x3$nodes$label))
 
-} # test_toEdgeAndNodeTables_withComplexes
+     # keep in mind that excludeUbiquitousSpecies is default TRUE
+   checkEquals(dim(x3$edges), c(5, 4))
+
+} # test_toEdgeAndNodeTables_STRAD
 #------------------------------------------------------------------------------------------------------------------------
 renderReaction <- function()
 {

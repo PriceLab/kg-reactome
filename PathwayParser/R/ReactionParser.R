@@ -229,18 +229,6 @@ ReactionParser = R6Class("ReactionParser",
                                 stringsAsFactors=FALSE)
 
           tbl.complexes <- data.frame()
-          #nodes.complexes <- c()
-          if(includeComplexMembers & self$getComplexCount() > 0){
-             complex.list <- self$getComplexes()
-             tbls.complex <- lapply(names(complex.list), function(species){
-                 parent <- species
-                 children <- complex.list[[parent]]
-                 data.frame(source=children, target=parent, interaction="complexMember",
-                            stringsAsFactors=FALSE)
-                 })
-             tbl.complexes <- do.call(rbind, tbls.complex)
-             # nodes.complexes <- c()
-             }
 
           tbl.edges <- rbind(tbl.in, tbl.out, tbl.modifiers) # don't add the complexes
           species <- grep("species_", unique(c(tbl.edges$source, tbl.edges$target)), v=TRUE)
@@ -254,16 +242,6 @@ ReactionParser = R6Class("ReactionParser",
                                   label=unlist(lapply(nodes.all, self$assignNodeName)),
                                   parent=rep("", length(nodes.all)),
                                   stringsAsFactors=FALSE)
-          if(nrow(tbl.complexes) > 0){   # add the parents
-             complex.members <- match(tbl.complexes$source, tbl.nodes$id)
-             tbl.nodes[complex.members, "parent"] <- tbl.complexes$target
-             xyz <- 99
-             }
-              # multiple instances of the same molecule can be distinguished with a .N suffix
-              # base R's make.names does this AND converts ":" (e.g., uniprotkb:P62942, ligandId:6031)
-              # into period: (e.g., uniprotkb.P62942, ligandId.6031).
-              # if used here, those names must be convered back, so that the unmodified nodes
-              # mentioned in tbl.edges match up.
           tbl.nodes$id <- make.names(tbl.nodes$id, unique=TRUE)
           tbl.nodes$id <- sub("ChEBI.", "ChEBI:", tbl.nodes$id, fixed=TRUE)
           tbl.nodes$id <- sub("uniprotkb.", "uniprotkb:", tbl.nodes$id, fixed=TRUE)
