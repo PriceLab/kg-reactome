@@ -107,14 +107,14 @@ test_processAllReactionsInPathway <- function()
    checkEquals(length(unique(c(tbl.edges$source, tbl.edges$target))), nrow(tbl.nodes))
 
    write.table(tbl.nodes,
-               file="~/github/kg-reactome/neo4j/import/R-HSA-165159-nodes.tsv",
+               file="/tmp/R-HSA-165159-nodes.tsv",
                sep="\t",
                row.names=FALSE,
                col.names=TRUE,
                quote=FALSE)
 
    write.table(tbl.edges,
-               file="~/github/kg-reactome/neo4j/import/R-HSA-165159-eges.tsv",
+               file="/tmp/R-HSA-165159-eges.tsv",
                sep="\t",
                row.names=FALSE,
                col.names=TRUE,
