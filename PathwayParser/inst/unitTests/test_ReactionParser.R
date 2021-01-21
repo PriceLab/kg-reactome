@@ -453,6 +453,20 @@ test_eliminateUbiquitiousSpecies <- function()
 
 } # test_eliminateUbiquitousSpecies
 #------------------------------------------------------------------------------------------------------------------------
+# intersecting genehancer and human accelerated regions turns up this mitochondrial protein
+# make sure we extract it properly
+test_oax1l.Q15070.inR_HSA_72766.sbml <- function()
+{
+   message(sprintf("--- test_oax1l.Q15070.inR_HSA_72766.sbml"))
+   sbml.filename <- system.file("PathwayParser", "extdata", "R-HSA-72766.sbml")
+   text <- paste(readLines(sbml.filename), collapse="\n")
+   checkTrue(nchar(text) > 300000)   # 315493
+   doc <- read_xml(text)
+   xml_ns_strip(doc)
+
+
+} # test_oax1l.Q15070.inR_HSA_72766.sbml
+#------------------------------------------------------------------------------------------------------------------------
 displayReaction <- function(i, exclude=TRUE, deleteExistingGraph=TRUE, includeComplexMembers=FALSE)
 {
    if(!exists("rcy")){

@@ -1,0 +1,7 @@
+git add  DESCRIPTION
+git add  R/Pathway.R
+git add  R/ReactionParser.R
+git add  inst/unitTests/test_Pathway.R
+git add  inst/unitTests/test_ReactionParser.R
+git add  man/Pathway.Rd
+git add  man/ReactionParser.Rd

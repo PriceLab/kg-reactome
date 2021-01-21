@@ -57,11 +57,28 @@ Pathway = R6Class("Pathway",
               members <- xml_text(xml_find_all(species, ".//bqbiol:hasPart//rdf:li/@rdf:resource"))
               is.elements <- xml_text(xml_find_all(species, ".//bqbiol:is//rdf:li/@rdf:resource"))
               notes <- xml_text(xml_find_all(species, ".//notes"))
-              alternativeEntities <- grepl("alternative entities", notes)
-              complex <- grepl("Reactome Complex", notes)
-              protein <- grepl("This is a protein", notes)
-              smallCompound <- grepl("This is a small compound", notes)
+                # notes are sometimes missing.  assume species is a protein.  might be a terrible idea
+              if(length(notes) == 0){
+                 printf("=============================================")
+                 printf("no notes section for %s in %s", name, private$sbml.filename)
+                 printf("=============================================")
+                 alternativeEntities <- FALSE
+                 complex <- FALSE
+                 protein <- TRUE
+                 smallCompound <- FALSE
+                 }
+              if(length(notes) > 0){
+                 alternativeEntities <- grepl("alternative entities", notes)
+                 complex <- grepl("Reactome Complex", notes)
+                 protein <- grepl("This is a protein", notes)
+                 smallCompound <- grepl("This is a small compound", notes)
+                }
 
+              printf("--- name: %s", name)
+              #if(name == "SLC36A4") browser()
+              #print(protein)
+              #print(members)
+              #print(is.elements)
               if(protein & length(members) == 0 & length(is.elements) > 0){
                  moleculeType <- "protein"
                  uniprot.id <- sub("http://purl.uniprot.org/uniprot/", "uniprotkb:", is.elements[1])
@@ -71,8 +88,7 @@ Pathway = R6Class("Pathway",
               #  members <- c()
                 # a pseudo complex, where the plural members are actually alternate proteins?
                 # todo: need a more robust solution here. now just use the first alternate
-              printf("length(members): %d   ; found? %s", length(members), !grepl(";", name))
-              if(name == "p-S371,T389-RPS6KB1") browser()
+              #printf("length(members): %d   ; found? %s", length(members), !grepl(";", name))
               if(length(members) > 0 & alternativeEntities){
                   moleculeType <- "protein"
                   uniprot.id <- sub(".*http://purl.uniprot.org/uniprot/", "uniprotkb:", members)[1]
